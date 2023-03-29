@@ -11,6 +11,7 @@ import { auth, db } from "~/constants";
 const Home: NextPage = (): JSX.Element => {
   const [name, setName] = useState("");
   const [userId, setUserId] = useState("");
+  const [first, setFirst] = useState("");
   console.log(auth);
   const provider = new GoogleAuthProvider();
 
@@ -84,7 +85,7 @@ const Home: NextPage = (): JSX.Element => {
   const addDataHandle = async () => {
     try {
       await updateDoc(doc(db, "user", "userId"), {
-        first: "テスto"
+        first: "テ書き換えますす"
       });
     } catch (e) {
       console.error("Error adding document: ", e);
@@ -111,10 +112,19 @@ const Home: NextPage = (): JSX.Element => {
   onSnapshot(doc(db, "user", "userId"), (doc) => {
     if (doc.exists()) {
       console.log("リアルタイム:", doc.data());
+      setFirst(doc.data().first);
     } else {
       console.log("No such document!");
     }
   });
+
+  const unsub = onSnapshot(doc(db, "user", "userId"), (doc) => {
+    console.log("Current data: あああああ", doc.data());
+
+    return { data: doc.data() };
+  });
+
+  console.log("コンソールのやつ", unsub);
 
   // console.log("リアルタイム: ", unsub());
 
@@ -135,8 +145,10 @@ const Home: NextPage = (): JSX.Element => {
       <h1>index page</h1>
       <button onClick={testHandle}>ボタン</button>
       <p>name: {name}</p>
+
       <button onClick={addHandle}>追加ボタン</button>
       <button onClick={addDataHandle}>データを書き換えるボタン</button>
+      <p>first: {first}</p>
     </>
   );
 };
