@@ -1,9 +1,10 @@
+import { css } from "@emotion/react";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup
 } from "firebase/auth";
-import { doc, getDoc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot, setDoc, updateDoc } from "firebase/firestore";
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 import { auth, db } from "~/constants";
@@ -15,7 +16,7 @@ const Home: NextPage = (): JSX.Element => {
   console.log(auth);
   const provider = new GoogleAuthProvider();
 
-  const testHandle = async () => {
+  const signInHandle = async () => {
     try {
       const res = await signInWithPopup(auth, provider);
       const credential = GoogleAuthProvider.credentialFromResult(res);
@@ -41,6 +42,7 @@ const Home: NextPage = (): JSX.Element => {
     }
   };
 
+  // DOM生成時に認証してるか確認
   useEffect(() => {
     console.log("db: ", db);
     onAuthStateChanged(auth, (user) => {
@@ -52,24 +54,17 @@ const Home: NextPage = (): JSX.Element => {
     });
   }, []);
 
-  (async () => {
-    try {
-      const cResult = await getDoc(doc(db, "user", "userId"));
+  // (async () => {
+  //   try {
+  //     const cResult = await getDoc(doc(db, "user", "userId"));
 
-      console.log("データを取得: ", cResult.data());
-    } catch (error) {
-      console.log(error);
-    }
-  })();
+  //     console.log("データを取得: ", cResult.data());
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // })();
 
-  // if (cResult.exists()) {
-  //   console.log("Document data:", docSnap.data());
-  // } else {
-  //   // doc.data() will be undefined in this case
-  //   console.log("No such document!");
-  // }
-
-  const addHandle = async () => {
+  const createHandle = async () => {
     try {
       const docRef = await setDoc(doc(db, "user", userId), {
         first: "これはテスト",
@@ -82,33 +77,18 @@ const Home: NextPage = (): JSX.Element => {
     }
   };
 
-  const addDataHandle = async () => {
+  // データを書き換える関数
+  const updateHandle = async () => {
     try {
       await updateDoc(doc(db, "user", "userId"), {
-        first: "テ書き換えますす"
+        first: "値が更新されました "
       });
     } catch (e) {
       console.error("Error adding document: ", e);
     }
   };
 
-  // const addHandle = async () => {
-  //   try {
-  //     const docRef = await setDoc(doc(db, "user", userId), {
-  //       first: "これはテスト",
-  //       last: "Lovelace"
-  //     });
-
-  //     console.log("Document written with ID: ", docRef.id);
-  //   } catch (e) {
-  //     console.error("Error adding document: ", e);
-  //   }
-  // };
-
-  // const unsub = onSnapshot(doc(db, "user", "userId"), (doc) => {
-  //   console.log("Current data: ", doc.data());
-  // });
-
+  // リアルタイムで値を監視して、変更があれば更新する関数
   onSnapshot(doc(db, "user", "userId"), (doc) => {
     if (doc.exists()) {
       console.log("リアルタイム:", doc.data());
@@ -118,38 +98,37 @@ const Home: NextPage = (): JSX.Element => {
     }
   });
 
-  const unsub = onSnapshot(doc(db, "user", "userId"), (doc) => {
-    console.log("Current data: あああああ", doc.data());
-
-    return { data: doc.data() };
-  });
-
-  console.log("コンソールのやつ", unsub);
-
-  // console.log("リアルタイム: ", unsub());
-
-  // useEffect(() => {
-  //   if (uid) {
-  //     const uidFun = async () => {
-  //       await setDoc(doc(db, "users", uid), {
-  //         score: 0,
-  //         mode: "default"
-  //       });
-  //     };
-  //     uidFun();
-  //   }
-  // }, [uid]);
-
   return (
     <>
       <h1>index page</h1>
-      <button onClick={testHandle}>ボタン</button>
+      <button css={button} onClick={signInHandle}>
+        サインインボタン
+      </button>
       <p>name: {name}</p>
-
-      <button onClick={addHandle}>追加ボタン</button>
-      <button onClick={addDataHandle}>データを書き換えるボタン</button>
-      <p>first: {first}</p>
+      <button css={button} onClick={createHandle}>
+        追加ボタン
+      </button>
+      <button css={button} onClick={updateHandle}>
+        データを書き換えるボタン
+      </button>
+      <p css={text}>
+        この値がリアルタイムで更新: <span css={span}>{first}</span>
+      </p>
     </>
   );
 };
 export default Home;
+
+const button = css`
+  background: #e0e0e0;
+  border: solid 1px black;
+  display: block;
+`;
+
+const text = css`
+  font-size: 20px;
+`;
+
+const span = css`
+  font-size: 24px;
+`;
